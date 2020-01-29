@@ -1,0 +1,58 @@
+import os
+import logging
+import pymongo
+from dotenv import load_dotenv
+from mediacloud.api import MediaCloud
+from cliff.api import Cliff
+from genderize import Genderize
+
+load_dotenv()  # load config from .env file
+
+# set up logging
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)s | %(name)s | %(message)s')
+logger = logging.getLogger(__name__)
+logger.info("------------------------------------------------------------------------")
+logger.info("Starting up Quote Worker")
+
+DB_NAME = "mc-headline-mentions"
+COLLECTION_NAME = "stories"
+
+BROKER_URL = os.environ['BROKER_URL']
+logger.info("BROKER_URL: {}".format(BROKER_URL))
+
+CLIFF_URL = os.environ['CLIFF_URL']
+logger.info("CLIFF_URL: {}".format(CLIFF_URL))
+
+MONGO_DSN = os.environ['MONGO_DSN']
+logger.info("MONGO_DSN: {}".format(MONGO_DSN))
+
+MC_API_KEY = os.environ['MC_API_KEY']
+
+places = [
+ {'name': 'India', 'sources': [65929, 67799, 39872]},
+ {'name': 'Kenya', 'sources': [41687, 59728, 106918]},
+ {'name': 'Nigeria', 'sources': [144805, 18021, 299178]},
+ {'name': 'South Africa', 'sources': [85940, 40262]},
+ {'name': 'UK', 'sources': [1094, 41150, 1750]},
+ {'name': 'US', 'sources': [1095, 1092, 1]},
+]
+
+
+def get_db_client():
+    client = pymongo.MongoClient(MONGO_DSN)
+    db = client[DB_NAME]
+    collection = db[COLLECTION_NAME]
+    return collection
+
+
+def get_mc_client():
+    return MediaCloud(MC_API_KEY)
+
+
+def get_cliff_client():
+    return Cliff(CLIFF_URL)
+
+
+def get_genderize_client():
+    return Genderize()

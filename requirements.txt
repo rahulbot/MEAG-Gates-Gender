@@ -1,0 +1,9 @@
+python-dotenv==0.10.3
+celery==4.4.0
+requests==2.22.0
+pymongo==3.10.1
+redis==3.3.11
+pytest==5.3.0
+mediacloud-cliff==2.6.0
+mediacloud==3.7.5
+genderize==0.3.1
