@@ -27,15 +27,18 @@ logger.info("CLIFF_URL: {}".format(CLIFF_URL))
 MONGO_DSN = os.environ['MONGO_DSN']
 logger.info("MONGO_DSN: {}".format(MONGO_DSN))
 
+CACHE_REDIS_URL = os.environ['CACHE_REDIS_URL']
+logger.info("CACHE_REDIS_URL: {}".format(CACHE_REDIS_URL))
+
 MC_API_KEY = os.environ['MC_API_KEY']
 
 places = [
- {'name': 'India', 'sources': [65929, 67799, 39872]},
- {'name': 'Kenya', 'sources': [41687, 59728, 106918]},
- {'name': 'Nigeria', 'sources': [144805, 18021, 299178]},
- {'name': 'South Africa', 'sources': [85940, 40262]},
- {'name': 'UK', 'sources': [1094, 41150, 1750]},
- {'name': 'US', 'sources': [1095, 1092, 1]},
+ {'name': 'India', 'iso_code': 'IN', 'sources': [65929, 67799, 39872]},
+ {'name': 'Kenya', 'iso_code': 'KE', 'sources': [41687, 59728, 106918]},
+ {'name': 'Nigeria', 'iso_code': 'NG', 'sources': [144805, 18021, 299178]},
+ {'name': 'South Africa', 'iso_code': 'ZA', 'sources': [85940, 40262]},
+ {'name': 'UK', 'iso_code': 'GB', 'sources': [1094, 41150, 1750]},
+ {'name': 'US', 'iso_code': 'US', 'sources': [1095, 1092, 1]},
 ]
 
 
