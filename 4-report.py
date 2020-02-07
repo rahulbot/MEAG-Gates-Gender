@@ -1,7 +1,7 @@
 import logging
 import csv
 
-from worker import get_mc_client, get_db_client, get_genderize_client, places
+from worker import get_mc_client, get_db_client, get_genderize_client, places, themes_tag_ids
 from worker.cache import cache
 
 logging.info("Writing reports")
@@ -11,14 +11,12 @@ collection = get_db_client()
 genderize = get_genderize_client()
 db = get_db_client()
 
-
+# fetch the top themes across all the stories for each source
+'''
 @cache.cache_on_arguments()
 def top_theme_tags(q: str, fq: str):
     mc = get_mc_client()
     return mc.storyTagCount(q, fq, tag_sets_id=TAG_SET_NYT_THEMES)
-
-
-# fetch the top themes across all the stories for each source
 top_themes = {}
 mc = get_mc_client()
 TAG_SET_NYT_THEMES = 1963  # the tag set the top 600 labels from our NYT-corpus-trained model
@@ -28,6 +26,7 @@ for p in places:
     place_top_theme_ids = [int(t['tags_id']) for t in place_top_themes]
     p['top_themes'] = place_top_themes
     place2themes[p['name']] = place_top_theme_ids
+'''
 
 total_stories = 0
 stories_no_people = 0
@@ -44,7 +43,7 @@ name_freq = {}
 representation = {}
 for p in places:
     representation[p['name']] = {}
-    for t in p['top_themes']:
+    for t in p['themes']:
         representation[p['name']][t['tags_id']] = {'male': 0, 'female': 0, 'tag': t, 'stories': 0}
 
 for s in collection.find():
@@ -85,7 +84,7 @@ for s in collection.find():
             people_missing_gender += 1
     # and track theme stuff
     for t in s['story_tags']:
-        if t['tags_id'] in place2themes[s['place']]:  # if it is a top theme
+        if t['tags_id'] in themes_tag_ids:  # if it is a theme of interest
             representation[s['place']][t['tags_id']]['stories'] += 1
             representation[s['place']][t['tags_id']]['male'] += story_male
             representation[s['place']][t['tags_id']]['female'] += story_female
@@ -122,23 +121,24 @@ with open('headline-gender-test-v2.csv', 'w') as f:
     for item in people_results:
         writer.writerow(item)
 
-# top themes in sources + a list of 10 that they want to make sure are included
-rows = []
-for place_name in representation.keys():
-    for tag_info in representation[place_name].values():
-        row = {
-            'place': place_name,
-            'theme_tags_id': tag_info['tag']['tags_id'],
-            'theme': tag_info['tag']['tag'],
-            'stories_with_tag': tag_info['stories'],
-            'female_headline_mentions': tag_info['female'],
-            'male_headline_mentions': tag_info['male'],
-        }
-        rows.append(row)
-with open('headline-gender-themes-v2.csv', 'w') as f:
-    headers = ['place', 'theme_tags_id', 'theme', 'stories_with_tag', 'female_headline_mentions', 'male_headline_mentions']
-    writer = csv.DictWriter(f, headers)
-    writer.writeheader()
-    for item in rows:
-        writer.writerow(item)
 
+# joinable test
+story_writer = csv.DictWriter(open('stories-v3.csv', 'w'),
+                              fieldnames=['stories_id', 'publish_date', 'media_id', 'media_name', 'url', 'title', 'place'],
+                              extrasaction='ignore')
+story_writer.writeheader()
+people_writer = csv.DictWriter(open('people-v3.csv', 'w'),
+                               fieldnames=['stories_id', 'name', 'gender', 'probability'],
+                               extrasaction='ignore')
+people_writer.writeheader()
+themes_writer = csv.DictWriter(open('themes-v3.csv', 'w'),
+                               fieldnames=['stories_id', 'tag', 'tags_id'],
+                               extrasaction='ignore')
+themes_writer.writeheader()
+for s in collection.find():
+    story_writer.writerow(s)
+    for p in s['people_with_gender']:
+        people_writer.writerow({**p, **{'stories_id': s['stories_id']}})
+    for t in s['story_tags']:
+        if t['tags_id'] in themes_tag_ids:
+            themes_writer.writerow({**t, **{'stories_id': s['stories_id']}})

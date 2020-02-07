@@ -1,7 +1,8 @@
 from dogpile.cache import make_region
 from dogpile.cache.util import compat
+import os
 
-from worker import CACHE_REDIS_URL
+CACHE_REDIS_URL = os.environ['CACHE_REDIS_URL']
 
 
 def _keyword_safe_key_generator(namespace, fn):
