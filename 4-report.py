@@ -46,7 +46,7 @@ for p in places:
     for t in p['themes']:
         representation[p['name']][t['tags_id']] = {'male': 0, 'female': 0, 'tag': t, 'stories': 0}
 
-for s in collection.find():
+for s in collection.find({'people_with_gender': {'$exists': True}}):
     total_stories += 1
     story_male = 0
     story_female = 0
@@ -106,7 +106,7 @@ one_part_names = []
 for k, v in name_freq.items():
     one_part_names.append({'name': k, 'frequency': v})
 one_part_names = sorted(one_part_names, key=lambda i: i['frequency'], reverse=True)
-with open('one-part-names-v2.csv', 'w') as f:
+with open('one-part-names-complete-v5.csv', 'w') as f:
     headers = ['name', 'frequency']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
@@ -114,28 +114,29 @@ with open('one-part-names-v2.csv', 'w') as f:
         writer.writerow(item)
 
 # write list of people gender results for review
-with open('headline-gender-test-v2.csv', 'w') as f:
+with open('headline-gender-complete-v5.csv', 'w') as f:
     headers = ['stories_id', 'name', 'first_name', 'gender_guess', 'gender_prob', 'headline']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
     for item in people_results:
         writer.writerow(item)
 
-
 # joinable test
-story_writer = csv.DictWriter(open('stories-v3.csv', 'w'),
-                              fieldnames=['stories_id', 'publish_date', 'media_id', 'media_name', 'url', 'title', 'place'],
+story_writer = csv.DictWriter(open('stories-complete-v5.csv', 'w'),
+                              fieldnames=['stories_id', 'publish_date', 'male_count', 'female_count', 'media_id', 'media_name', 'url', 'title', 'place'],
                               extrasaction='ignore')
 story_writer.writeheader()
-people_writer = csv.DictWriter(open('people-v3.csv', 'w'),
+people_writer = csv.DictWriter(open('people-complete-v5.csv', 'w'),
                                fieldnames=['stories_id', 'name', 'gender', 'probability'],
                                extrasaction='ignore')
 people_writer.writeheader()
-themes_writer = csv.DictWriter(open('themes-v3.csv', 'w'),
+themes_writer = csv.DictWriter(open('themes-complete-v5.csv', 'w'),
                                fieldnames=['stories_id', 'tag', 'tags_id'],
                                extrasaction='ignore')
 themes_writer.writeheader()
-for s in collection.find():
+for s in collection.find({'people_with_gender': {'$exists': True}}):
+    s['male_count'] = len([p for p in s['people_with_gender'] if p['gender'] == 'male'])
+    s['female_count'] = len([p for p in s['people_with_gender'] if p['gender'] == 'female'])
     story_writer.writerow(s)
     for p in s['people_with_gender']:
         people_writer.writerow({**p, **{'stories_id': s['stories_id']}})

@@ -21,7 +21,7 @@ logger.info("-------------------------------------------------------------------
 logger.info("Starting up Quote Worker")
 
 DB_NAME = "mc-gates-headlines"
-COLLECTION_NAME = "test-stories"
+COLLECTION_NAME = "all-stories"
 
 BROKER_URL = os.environ['BROKER_URL']
 logger.info("BROKER_URL: {}".format(BROKER_URL))
@@ -35,7 +35,11 @@ logger.info("MONGO_DSN: {}".format(MONGO_DSN))
 CACHE_REDIS_URL = os.environ['CACHE_REDIS_URL']
 logger.info("CACHE_REDIS_URL: {}".format(CACHE_REDIS_URL))
 
+GENDERIZE_API_KEY = os.environ['GENDERIZE_API_KEY']
+logger.info("GENDERIZE_API_KEY: {}".format(GENDERIZE_API_KEY))
+
 MC_API_KEY = os.environ['MC_API_KEY']
+
 
 def get_db_client():
     client = pymongo.MongoClient(MONGO_DSN)
@@ -53,7 +57,7 @@ def get_cliff_client():
 
 
 def get_genderize_client():
-    return Genderize()
+    return Genderize(api_key=GENDERIZE_API_KEY)
 
 
 # load in places from CSV file
@@ -100,6 +104,5 @@ with open(INPUT_FILE, 'r') as f:
             logger.error('No place matching {}'.format(country))
             sys.exit()
 for p in places:
-    p['date_query'] = MediaCloud.publish_date_query(dt.date(2019, 1, 1), dt.date(2019, 12, 31))
     p['themes'] = theme_tags
 

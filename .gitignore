@@ -19,4 +19,5 @@ CVS
 .env
 .idea
 *.pyc
-*.csv
+data-*
+*.xlsx
