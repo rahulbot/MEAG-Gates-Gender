@@ -46,7 +46,7 @@ for p in places:
     for t in p['themes']:
         representation[p['name']][t['tags_id']] = {'male': 0, 'female': 0, 'tag': t, 'stories': 0}
 
-for s in collection.find({'people_with_gender': {'$exists': True}}):
+for s in collection.find({'all_gendered_people': {'$exists': True}}):
     total_stories += 1
     story_male = 0
     story_female = 0
@@ -62,7 +62,7 @@ for s in collection.find({'people_with_gender': {'$exists': True}}):
             name_freq[p['name']] += 1
         else:
             people_with_multipart_names += 1
-    for p in s['people_with_gender']:
+    for p in s['all_gendered_people']:
         if p['gender']:
             people_with_gender += 1
             if p['gender'] == 'male':
@@ -134,11 +134,11 @@ themes_writer = csv.DictWriter(open('themes-complete-v5.csv', 'w'),
                                fieldnames=['stories_id', 'tag', 'tags_id'],
                                extrasaction='ignore')
 themes_writer.writeheader()
-for s in collection.find({'people_with_gender': {'$exists': True}}):
-    s['male_count'] = len([p for p in s['people_with_gender'] if p['gender'] == 'male'])
-    s['female_count'] = len([p for p in s['people_with_gender'] if p['gender'] == 'female'])
+for s in collection.find({'all_gendered_people': {'$exists': True}}):
+    s['male_count'] = len([p for p in s['all_gendered_people'] if p['gender'] == 'male'])
+    s['female_count'] = len([p for p in s['all_gendered_people'] if p['gender'] == 'female'])
     story_writer.writerow(s)
-    for p in s['people_with_gender']:
+    for p in s['all_gendered_people']:
         people_writer.writerow({**p, **{'stories_id': s['stories_id']}})
     for t in s['story_tags']:
         if t['tags_id'] in themes_tag_ids:
