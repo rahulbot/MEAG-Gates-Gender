@@ -34,9 +34,9 @@ total_people = 0
 people_one_name = 0
 people_with_multipart_names = 0
 people_with_gender = 0
-people_missing_gender = 0
 male_people = 0
 female_people = 0
+unknown_people = 0
 
 people_results = []
 name_freq = {}
@@ -44,12 +44,13 @@ representation = {}
 for p in places:
     representation[p['name']] = {}
     for t in p['themes']:
-        representation[p['name']][t['tags_id']] = {'male': 0, 'female': 0, 'tag': t, 'stories': 0}
+        representation[p['name']][t['tags_id']] = {'male': 0, 'female': 0, 'unknown': 0, 'tag': t, 'stories': 0}
 
 for s in collection.find({'all_gendered_people': {'$exists': True}}):
     total_stories += 1
     story_male = 0
     story_female = 0
+    story_unknown = 0
     if len(s['people']) == 0:
         stories_no_people += 1
     else:
@@ -63,7 +64,7 @@ for s in collection.find({'all_gendered_people': {'$exists': True}}):
         else:
             people_with_multipart_names += 1
     for p in s['all_gendered_people']:
-        if p['gender']:
+        if p['gender'] is not  None:
             people_with_gender += 1
             if p['gender'] == 'male':
                 male_people += 1
@@ -81,13 +82,15 @@ for s in collection.find({'all_gendered_people': {'$exists': True}}):
             }
             people_results.append(summary)
         else:
-            people_missing_gender += 1
+            unknown_people += 1
+            story_unknown += 1
     # and track theme stuff
     for t in s['story_tags']:
         if t['tags_id'] in themes_tag_ids:  # if it is a theme of interest
             representation[s['place']][t['tags_id']]['stories'] += 1
             representation[s['place']][t['tags_id']]['male'] += story_male
             representation[s['place']][t['tags_id']]['female'] += story_female
+            representation[s['place']][t['tags_id']]['unknown'] += story_unknown
 
 
 print("Total Stories: {}".format(total_stories))
@@ -96,6 +99,7 @@ print("  No people in headline: {}".format(stories_no_people))
 print("Total People: {}".format(total_people))
 print("  Only one name: {}".format(people_one_name))
 print("  Multi-part names: {}".format(people_with_multipart_names))
+print("    No gender guess: {}".format(unknown_people))
 print("    Have a gender guess: {}".format(people_with_gender))
 print("      Guessed Male: {}".format(male_people))
 print("      Guessed Female: {}".format(female_people))
@@ -106,7 +110,7 @@ one_part_names = []
 for k, v in name_freq.items():
     one_part_names.append({'name': k, 'frequency': v})
 one_part_names = sorted(one_part_names, key=lambda i: i['frequency'], reverse=True)
-with open('one-part-names-complete-v5.csv', 'w') as f:
+with open('one-part-names-complete-v7.csv', 'w') as f:
     headers = ['name', 'frequency']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
@@ -114,7 +118,7 @@ with open('one-part-names-complete-v5.csv', 'w') as f:
         writer.writerow(item)
 
 # write list of people gender results for review
-with open('headline-gender-complete-v5.csv', 'w') as f:
+with open('headline-gender-complete-v7.csv', 'w') as f:
     headers = ['stories_id', 'name', 'first_name', 'gender_guess', 'gender_prob', 'headline']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
@@ -122,21 +126,28 @@ with open('headline-gender-complete-v5.csv', 'w') as f:
         writer.writerow(item)
 
 # joinable test
-story_writer = csv.DictWriter(open('stories-complete-v5.csv', 'w'),
-                              fieldnames=['stories_id', 'publish_date', 'male_count', 'female_count', 'media_id', 'media_name', 'url', 'title', 'place'],
+story_writer = csv.DictWriter(open('stories-complete-v7.csv', 'w'),
+                              fieldnames=['stories_id', 'publish_date', 'has_any?', 'male_count', 'has_male?',
+                                          'female_count', 'has_female?', 'unknown_count', 'has_unknown?',
+                                          'media_id', 'media_name', 'url', 'title', 'place'],
                               extrasaction='ignore')
 story_writer.writeheader()
-people_writer = csv.DictWriter(open('people-complete-v5.csv', 'w'),
+people_writer = csv.DictWriter(open('people-complete-v7.csv', 'w'),
                                fieldnames=['stories_id', 'name', 'gender', 'probability'],
                                extrasaction='ignore')
 people_writer.writeheader()
-themes_writer = csv.DictWriter(open('themes-complete-v5.csv', 'w'),
+themes_writer = csv.DictWriter(open('themes-complete-v7.csv', 'w'),
                                fieldnames=['stories_id', 'tag', 'tags_id'],
                                extrasaction='ignore')
 themes_writer.writeheader()
 for s in collection.find({'all_gendered_people': {'$exists': True}}):
+    s['has_any?'] = 1 if len(s['all_gendered_people']) > 0 else 0
     s['male_count'] = len([p for p in s['all_gendered_people'] if p['gender'] == 'male'])
+    s['has_male?'] = 1 if len([p for p in s['all_gendered_people'] if p['gender'] == 'male']) > 0 else 0
     s['female_count'] = len([p for p in s['all_gendered_people'] if p['gender'] == 'female'])
+    s['has_female?'] = 1 if len([p for p in s['all_gendered_people'] if p['gender'] == 'female']) > 0 else 0
+    s['unknown_count'] = len([p for p in s['all_gendered_people'] if p['gender'] is None])
+    s['has_unknown?'] = 1 if len([p for p in s['all_gendered_people'] if p['gender'] is None]) > 0 else 0
     story_writer.writerow(s)
     for p in s['all_gendered_people']:
         people_writer.writerow({**p, **{'stories_id': s['stories_id']}})
