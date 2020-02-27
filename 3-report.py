@@ -32,8 +32,6 @@ for p in places:
         representation[p['name']][t['tags_id']] = {'male': 0, 'female': 0, 'unknown': 0, 'tag': t, 'stories': 0}
 
 for s in collection.find({'people_with_gender': {'$exists': True}}):
-    if len(s['people_with_gender']) == 0:
-        continue
     total_stories += 1
     story_male = 0
     story_female = 0
@@ -124,7 +122,7 @@ themes_writer = csv.DictWriter(open('data-v{}/themes-complete-v{}.csv'.format(VE
                                fieldnames=['stories_id', 'tag', 'tags_id'],
                                extrasaction='ignore')
 themes_writer.writeheader()
-for s in collection.find({'all_gendered_people': {'$exists': True}}):
+for s in collection.find({'people_with_gender': {'$exists': True}}):
     s['has_any?'] = 1 if len(s['people_with_gender']) > 0 else 0
     s['male_count'] = len([p for p in s['people_with_gender'] if p['gender'] == 'male'])
     s['has_male?'] = 1 if len([p for p in s['people_with_gender'] if p['gender'] == 'male']) > 0 else 0
@@ -133,7 +131,7 @@ for s in collection.find({'all_gendered_people': {'$exists': True}}):
     s['unknown_count'] = len([p for p in s['people_with_gender'] if p['gender'] is None])
     s['has_unknown?'] = 1 if len([p for p in s['people_with_gender'] if p['gender'] is None]) > 0 else 0
     story_writer.writerow(s)
-    for p in s['all_gendered_people']:
+    for p in s['people_with_gender']:
         people_writer.writerow({**p, **{'stories_id': s['stories_id']}})
     for t in s['story_tags']:
         if t['tags_id'] in themes_tag_ids:

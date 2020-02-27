@@ -108,11 +108,13 @@ place_replacements = {
 }
 INPUT_FILE = os.path.join('data', "genderize quotes dataset - genderize_14294_sources_v3.csv")
 data = []
+unique_story_ids = []
 with open(INPUT_FILE, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
-        if row['checked (y/n)'].lower() == 'y':
+        if (row['checked (y/n)'].lower() == 'y') and (row['stories_id'] not in unique_story_ids):
             if row['Place'].lower() in place_replacements.keys():
                 row['Place'] = place_replacements[row['Place'].lower()]
             data.append(row)
+            unique_story_ids.append(row['stories_id'])
 logger.info("  loaded {} stories".format(len(data)))
