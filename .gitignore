@@ -21,3 +21,5 @@ CVS
 *.pyc
 data-*
 *.xlsx
+receipts/*
+

@@ -1,80 +1,53 @@
 import logging
-from deco import concurrent, synchronized
-import math
-from mediacloud.api import MediaCloud
-import datetime
-import calendar
-import random
 from multiprocessing import Pool
 
 from worker.cache import cache
-from worker import get_db_client, get_mc_client, places
+from worker import get_db_client, get_mc_client, places, data
 
-logging.info("Fetching stories from Media Cloud to save in DB")
+logger = logging.getLogger(__name__)
 
-collection = get_db_client()
-
-db = get_db_client()
+logger.info("Fetching stories from Media Cloud to save in DB")
 
 REALLY_INSERT = True
-USE_POOL = False
+PAGE_SIZE = 300
+POOL_SIZE = 5
 
 
 @cache.cache_on_arguments()
-def cached_story_page(q, fq, page_size):
+def cached_story_page1(q, page_size):
     mc = get_mc_client()
-    story_page = mc.storyList(q, fq, sort=mc.SORT_RANDOM, rows=page_size)
+    story_page = mc.storyList(q, rows=page_size)
     return story_page
 
 
-def month_sample_worker(job):
-    q = job['q']
-    month = job['month']
-    page_size = job['page_size']
-    start_date = datetime.date(2019, month, 1)
-    days_in_month = calendar.monthrange(start_date.year, start_date.month)[1]
-    end_date = start_date + datetime.timedelta(days=days_in_month-1)
-    fq = MediaCloud.publish_date_query(start_date, end_date)
-    stories = cached_story_page(q, fq, page_size)
-    return stories
-
-worker_pool = Pool(12)
-
-
-def sample_all_months(q, total_sample_size):
-    jobs = [{'q': q, 'month': month, 'page_size': 200} for month in range(1, 12)]
-    if USE_POOL:
-        stories_by_month = worker_pool.map(month_sample_worker, jobs)
-    else:
-        stories_by_month = []
-        for month in range(1, 12):
-            job = {'q': q, 'month': month, 'page_size': 200}
-            logging.info("      month {} started".format(month))
-            stories_by_month.append(month_sample_worker(job))
-    all_stories = []
-    for m in stories_by_month:
-        all_stories += m
-    random.shuffle(all_stories)
-    return all_stories[:total_sample_size]
+def story_fetch_worker(job):
+    q = job['query']
+    stories = cached_story_page1(q, PAGE_SIZE)
+    logger.info("  got a chunk of data back {}".format(len(stories)))
+    for s in stories:
+        matching = [e for e in job['stories'] if int(e['stories_id']) == int(s['stories_id'])][0]
+        s['place'] = matching['Place']
+        s['quote'] = matching
+    logger.info("  done with place addition")
+    if REALLY_INSERT:
+        db = get_db_client()
+        db.insert_many(stories)
+    return len(stories)
 
 
-def fetch_stories(q, sample_size):
-    return sample_all_months(q, sample_size)
+worker_pool = Pool(POOL_SIZE)
 
+chunks = [data[i * PAGE_SIZE:(i + 1) * PAGE_SIZE] for i in range((len(data) + PAGE_SIZE - 1) // PAGE_SIZE)]
+logger.info("  will fetch in {:n} chunks".format(len(chunks)))
 
-stories_needed = 0
-stories_fetched = 0
-for p in places:
-    logging.info("  Working on {} ({} sources)".format(p['name'], len(p['sources'])))
-    for source in p['sources']:
-        logging.info("    Media Id {} - {} stories needed".format(source['media_id'], source['sample_size']))
-        query = '* AND media_id:{} AND language:en'.format(source['media_id'])
-        stories_needed += int(source['sample_size'])
-        if REALLY_INSERT:
-            stories = fetch_stories(query, int(source['sample_size']))
-            for s in stories:
-                s['place'] = p['name']
-            db.insert_many(stories)
-            stories_fetched += len(stories)
+jobs = []
+for story_list in chunks:
+    story_ids = [s['stories_id'] for s in story_list]
+    jobs.append({
+        'query': "stories_id:({})".format(' '.join(story_ids)),
+        'stories': story_list,
+    })
+logger.info("  queued up {:n} jobs".format(len(chunks)))
+results = worker_pool.map(story_fetch_worker, jobs)
 
-logging.info("Need {} stories, fetched {} stories".format(stories_needed, stories_fetched))
+logger.info("Done with {:n} stories".format(sum(results)))

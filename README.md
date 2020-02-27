@@ -18,16 +18,7 @@ Running the Pipeline:
 
 Run `python 1-fetch-stories.py` to fill the DB with stories from Media Cloud.
 
-### 2 - Adding Entities
-
-This uses our [Cliff-Clavin server](http://cliff.mediacloud.org) to identity any mentions of people in the headline.
-
-Open up one terminal window and start the workers waiting: `celery worker -A worker -l info`. Watch the log to see
-if processing stories.
-
-Open up another window and run `python 2-add-headline-entities.py` to fill that queue with tasks.
-
-### 3 - Adding Entities
+### 2 - Adding Gender
 
 This uses the [Genderize.io API](https://genderize.io) to identity the gender of people.
 

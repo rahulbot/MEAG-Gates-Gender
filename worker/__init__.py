@@ -26,11 +26,14 @@ COLLECTION_NAME = "all-stories"
 BROKER_URL = os.environ['BROKER_URL']
 logger.info("BROKER_URL: {}".format(BROKER_URL))
 
-CLIFF_URL = os.environ['CLIFF_URL']
-logger.info("CLIFF_URL: {}".format(CLIFF_URL))
-
 MONGO_DSN = os.environ['MONGO_DSN']
 logger.info("MONGO_DSN: {}".format(MONGO_DSN))
+
+MONGO_DB = os.environ['MONGO_DB']
+logger.info("MONGO_DB: {}".format(MONGO_DB))
+
+MONGO_COLLECTION = os.environ['MONGO_COLLECTION']
+logger.info("MONGO_COLLECTION: {}".format(MONGO_COLLECTION))
 
 CACHE_REDIS_URL = os.environ['CACHE_REDIS_URL']
 logger.info("CACHE_REDIS_URL: {}".format(CACHE_REDIS_URL))
@@ -43,17 +46,13 @@ MC_API_KEY = os.environ['MC_API_KEY']
 
 def get_db_client():
     client = pymongo.MongoClient(MONGO_DSN)
-    db = client[DB_NAME]
-    collection = db[COLLECTION_NAME]
+    db = client[MONGO_DB]
+    collection = db[MONGO_COLLECTION]
     return collection
 
 
 def get_mc_client():
     return MediaCloud(MC_API_KEY)
-
-
-def get_cliff_client():
-    return Cliff(CLIFF_URL)
 
 
 def get_genderize_client():
@@ -92,17 +91,28 @@ places = [
     {'name': 'United Kingdom', 'iso_code': 'GB', 'sources': []},
     {'name': 'United States', 'iso_code': 'US', 'sources': []},
 ]
-INPUT_FILE = os.path.join('data', "Gates Gender Selected Media.csv")
-with open(INPUT_FILE, 'r') as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        country = row['PUB COUNTRY']
-        try:
-            place = [p for p in places if p['name'].strip() == country][0]
-            place['sources'].append({'media_id': row['Media Cloud ID'], 'sample_size': row[' Sample Size Needed (95% conf, 2% MOE) ']})
-        except IndexError:
-            logger.error('No place matching {}'.format(country))
-            sys.exit()
 for p in places:
     p['themes'] = theme_tags
 
+INPUT_FILE = os.path.join('data', "replacements.csv")
+replacement_lookup = {}
+with open(INPUT_FILE, 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        replacement_lookup[row['original']] = row['replacement']
+logger.info("  loaded {} replacements".format(len(replacement_lookup.keys())))
+
+place_replacements = {
+    'us': 'United States',
+    'uk': 'United Kingdom'
+}
+INPUT_FILE = os.path.join('data', "genderize quotes dataset - genderize_14294_sources_v3.csv")
+data = []
+with open(INPUT_FILE, 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        if row['checked (y/n)'].lower() == 'y':
+            if row['Place'].lower() in place_replacements.keys():
+                row['Place'] = place_replacements[row['Place'].lower()]
+            data.append(row)
+logger.info("  loaded {} stories".format(len(data)))
