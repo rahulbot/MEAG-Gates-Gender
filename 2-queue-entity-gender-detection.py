@@ -15,7 +15,7 @@ logging.info("  Need to add gender to {} ({} already done)".format(unprocessed, 
 
 queued = 0
 for story in db.find({'people_with_gender': {'$exists': False}}):
-#for story in db.find({'stories_id': 1396871552}):
+#for story in db.find({'stories_id': 1160837786}):
     matching_place = [p for p in places if p['name'] == story['place']][0]
     tasks.parse_with_genderize.delay({
         'stories_id': story['stories_id'],

@@ -1,6 +1,7 @@
 from celery.utils.log import get_task_logger
 from typing import Dict, List
 import copy
+import json
 
 from worker import get_db_client, get_genderize_client, replacement_lookup
 from worker.celery import app
@@ -36,6 +37,8 @@ def parse_with_genderize(self, story):
     starts_with_ms_mr = speaker[:2].lower() in ['mr', 'ms']
     person['starts_with_ms_mr'] = starts_with_ms_mr
     is_pronoun = speaker.lower() in ['he', 'she']
+    starts_with_a_or_the = (speaker[:1].lower() in ['a ']) or (speaker[:2].lower() in ['the'])
+    person['starts_with_a_or_the'] = starts_with_a_or_the
     person['is_pronoun'] = is_pronoun
     people = [person]
     # skip genderize if this has been manually gender coded already
@@ -50,14 +53,18 @@ def parse_with_genderize(self, story):
                 elif p['name'][:2].lower() == 'mr':
                     gender = 'male'
             elif is_pronoun:
-                if p['name'].lower() is 'he':
+                if p['name'].lower() == 'he':
                     gender = 'male'
-                elif p['name'].lower() is 'she':
+                elif p['name'].lower() == 'she':
                     gender = 'female'
             p['gender'] = gender
             p['probability'] = 1
             p['country_id'] = story['place_iso_code'].upper()
             needs_gender = gender is None
+            logger.info(json.dumps(p))
+    elif starts_with_a_or_the:
+        # don't run things like "a source" through genderize
+        people_with_gender = []
     else:
         needs_gender = True
     if SAVE_TO_DB:  # write all the quotes to the DB

@@ -99,14 +99,14 @@ replacement_lookup = {}
 with open(INPUT_FILE, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
-        replacement_lookup[row['original']] = row['replacement']
+        replacement_lookup[row['original'].lower()] = row['replacement']
 logger.info("  loaded {} replacements".format(len(replacement_lookup.keys())))
 
 place_replacements = {
     'us': 'United States',
     'uk': 'United Kingdom'
 }
-INPUT_FILE = os.path.join('data', "genderize quotes dataset - genderize_14294_sources_v3.csv")
+INPUT_FILE = os.path.join('data', "Preliminary.csv")
 data = []
 unique_story_ids = []
 with open(INPUT_FILE, 'r') as f:
