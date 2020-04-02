@@ -2,12 +2,9 @@ import os
 import logging
 import pymongo
 import csv
-import sys
 from dotenv import load_dotenv
 from mediacloud.api import MediaCloud
-from cliff.api import Cliff
 from genderize import Genderize
-import datetime as dt
 
 load_dotenv()  # load config from .env file
 
@@ -19,6 +16,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)s | %(
 logger = logging.getLogger(__name__)
 logger.info("------------------------------------------------------------------------")
 logger.info("Starting up Quote Worker")
+
+DATA_FILE_NAME = "Final Data.csv"
 
 DB_NAME = "mc-gates-headlines"
 COLLECTION_NAME = "all-stories"
@@ -106,7 +105,7 @@ place_replacements = {
     'us': 'United States',
     'uk': 'United Kingdom'
 }
-INPUT_FILE = os.path.join('data', "Preliminary.csv")
+INPUT_FILE = os.path.join('data', DATA_FILE_NAME)
 data = []
 unique_story_ids = []
 with open(INPUT_FILE, 'r') as f:

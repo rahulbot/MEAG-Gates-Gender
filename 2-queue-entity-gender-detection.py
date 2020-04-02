@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from worker import get_db_client, get_genderize_client, places
 import worker.tasks as tasks

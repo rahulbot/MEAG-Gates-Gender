@@ -1,10 +1,9 @@
 import logging
 import csv
 
-from worker import get_mc_client, get_db_client, get_genderize_client, places, themes_tag_ids
-from worker.cache import cache
+from worker import get_db_client, get_genderize_client, places, themes_tag_ids
 
-VERSION = 2
+VERSION = 1
 
 logging.info("Writing reports")
 
