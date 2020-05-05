@@ -1,7 +1,13 @@
 Media Cloud Headline Gender Mentions Pipeline
 =============================================
 
-A workflow that will fetch stories, add entity mentions, check gender on them. All info saved to a MongoDB.
+A workflow to count people mentioned in headlines and guess their gender (which of course is fraught with complications
+and ethical issues). This:
+1. starts with a list of story ids from Media Cloud (a sample you generate somehow)
+2. fetches the story headlines and other metadata and saves it into a MongoDB
+3. runs those headlines through CLIFF-CLAVIN to find any person entities
+4. runs those people's names through Genderize to guess their gender (with a country of origin hint)
+5. outputs a whole bunch of spreadsheets breaking this down by gender, themes, country, and more for you to analyze
 
 Dev Installation
 ----------------
