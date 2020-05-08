@@ -1,14 +1,9 @@
 import logging
-import os
-import csv
 import copy
 import sys
 
-from worker import get_db_client
+from worker import get_db_client, get_single_name_manual_lookup
 
-SINGLE_NAME_GENDERS_CSV = os.path.join('data', 'manually coded single names.csv')
-
-logging.info("Adding single name gender data (from {})".format(SINGLE_NAME_GENDERS_CSV))
 
 db = get_db_client()
 
@@ -16,11 +11,10 @@ processed = db.count_documents({'people_one_name_genders': {'$exists': True}})
 logging.info("  {} stories already processed".format(processed))
 to_do = db.count_documents({'people_one_name_genders': {'$exists': False}})
 logging.info("  {} more to check".format(to_do))
-sys.exit()
+#sys.exit()
+
 # load custom gender lookup
-accepted_genders = ['male', 'female']  # most ironic variable name ever?
-custom_gender_data = csv.DictReader(open(SINGLE_NAME_GENDERS_CSV, 'r', encoding='utf-8-sig'))
-gender_lookup = {r['name']: r['gender'].lower() for r in custom_gender_data if r['gender'].lower() in accepted_genders}
+gender_lookup = get_single_name_manual_lookup()
 logging.info("  {} total manually coded genders (male or female)".format(len(gender_lookup)))
 
 added = 0

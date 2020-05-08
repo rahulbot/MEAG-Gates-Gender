@@ -9,12 +9,14 @@ and ethical issues). This:
 4. runs those people's names through Genderize to guess their gender (with a country of origin hint)
 5. outputs a whole bunch of spreadsheets breaking this down by gender, themes, country, and more for you to analyze
 
+This work completed for the Gates Foundation.
+
 Dev Installation
 ----------------
 
 `pip install -r requirements.txt` - to install the dependencies
 
-Copy the ``.env.template` to `.env` and then edit it.
+Copy the `.env.template` to `.env` and then edit it.
 
 
 Running the Pipeline:
@@ -40,8 +42,18 @@ This uses the [Genderize.io API](https://genderize.io) to identity the gender of
 Open up one terminal window and start the workers waiting: `celery worker -A worker -l info`. Watch the log to see
 if processing stories.
 
-Open up another window and run `python 3-add-entity-gender.py` to fill that queue with tasks.
+Open up another window and run `python 3-queue-entity-gender-detection.py` to fill that queue with tasks.
 
+### 4 - Adding Manually Coded Names
+
+A number of results were very famous people referred to by just one name. We manually coded
+these. To add these in, open up one terminal window and run `python 4-add-sinly-name-genders.py`.
+
+### 5 - Reporting
+
+We write these all out to a set of CSVs suitable for analysis in Tableau. Open up a terminal and run
+`python 5-report.py` to generate these CSVs. They will be in a folder named based on the the colleciton
+and version you specified in the environment variables.
 
 Notes
 -----

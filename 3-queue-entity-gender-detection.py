@@ -21,6 +21,8 @@ processed = db.count_documents({'people_with_gender': {'$exists': True}})
 unprocessed = db.count_documents({'people_with_gender': {'$exists': False}})
 logging.info("  Need to add gender to {} ({} already done)".format(unprocessed, processed))
 
+sys.exit()
+
 queued = 0
 for story in db.find({'people_with_gender': {'$exists': False}}):
     matching_place = [p for p in places if p['name'] == story['place']][0]

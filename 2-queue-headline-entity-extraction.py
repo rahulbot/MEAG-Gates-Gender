@@ -1,5 +1,5 @@
 import logging
-#import sys
+import sys
 
 from worker import get_db_client, get_cliff_client
 import worker.tasks as tasks
@@ -14,7 +14,7 @@ db = get_db_client()
 processed = db.count_documents({'raw_cliff_results': {'$exists': True}})
 unprocessed = db.count_documents({'raw_cliff_results': {'$exists': False}})
 logging.info("  Need to process {} ({} already done)".format(unprocessed, processed))
-#sys.exit
+sys.exit()
 queued = 0
 
 for story in collection.find({'raw_cliff_results': {'$exists': False}}):

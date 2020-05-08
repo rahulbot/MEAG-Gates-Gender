@@ -1,10 +1,18 @@
 import logging
 import csv
+import os
 
-from worker import get_mc_client, get_db_client, get_genderize_client, places, themes_tag_ids
-from worker.cache import cache
+from worker import get_db_client, get_genderize_client, places, themes_tag_ids,\
+    COLLECTION_NAME, VERSION, get_single_name_manual_lookup
 
-logging.info("Writing reports")
+# create a report directory to save the CSVs in
+OUTPUT_DIR = COLLECTION_NAME + "-" + VERSION
+try:
+    os.makedirs(OUTPUT_DIR)
+except OSError as e:
+    pass  # the dir already existing isn't really an error
+
+logging.info("Writing reports to {}".format(OUTPUT_DIR))
 
 collection = get_db_client()
 
@@ -110,15 +118,24 @@ one_part_names = []
 for k, v in name_freq.items():
     one_part_names.append({'name': k, 'frequency': v})
 one_part_names = sorted(one_part_names, key=lambda i: i['frequency'], reverse=True)
-with open('one-part-names-complete-v7.csv', 'w') as f:
+with open(os.path.join(OUTPUT_DIR, 'one-part-names-complete.csv'), 'w') as f:
     headers = ['name', 'frequency']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
     for item in one_part_names:
         writer.writerow(item)
+# add in a list of one-part names we have NOT coded yet
+gender_lookup = get_single_name_manual_lookup()
+new_one_part_names = [r for r in one_part_names if r['name'] not in gender_lookup]
+with open(os.path.join(OUTPUT_DIR, 'one-part-names-not-coded.csv'), 'w') as f:
+    headers = ['name', 'frequency']
+    writer = csv.DictWriter(f, headers)
+    writer.writeheader()
+    for item in new_one_part_names:
+        writer.writerow(item)
 
 # write list of people gender results for review
-with open('headline-gender-complete-v7.csv', 'w') as f:
+with open(os.path.join(OUTPUT_DIR, 'headline-gender-complete.csv'), 'w') as f:
     headers = ['stories_id', 'name', 'first_name', 'gender_guess', 'gender_prob', 'headline']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
@@ -126,17 +143,17 @@ with open('headline-gender-complete-v7.csv', 'w') as f:
         writer.writerow(item)
 
 # joinable test
-story_writer = csv.DictWriter(open('stories-complete-v7.csv', 'w'),
+story_writer = csv.DictWriter(open(os.path.join(OUTPUT_DIR, 'stories-complete.csv'), 'w'),
                               fieldnames=['stories_id', 'publish_date', 'has_any?', 'male_count', 'has_male?',
                                           'female_count', 'has_female?', 'unknown_count', 'has_unknown?',
                                           'media_id', 'media_name', 'url', 'title', 'place'],
                               extrasaction='ignore')
 story_writer.writeheader()
-people_writer = csv.DictWriter(open('people-complete-v7.csv', 'w'),
+people_writer = csv.DictWriter(open(os.path.join(OUTPUT_DIR, 'people-complete.csv'), 'w'),
                                fieldnames=['stories_id', 'name', 'gender', 'probability'],
                                extrasaction='ignore')
 people_writer.writeheader()
-themes_writer = csv.DictWriter(open('themes-complete-v7.csv', 'w'),
+themes_writer = csv.DictWriter(open(os.path.join(OUTPUT_DIR, 'themes-complete.csv'), 'w'),
                                fieldnames=['stories_id', 'tag', 'tags_id'],
                                extrasaction='ignore')
 themes_writer.writeheader()
