@@ -19,17 +19,17 @@ logger.info("Starting up Quote Worker")
 
 DATA_FILE_NAME = "Final Data.csv"
 
-DB_NAME = "mc-gates-headlines"
-COLLECTION_NAME = "all-stories"
-
 BROKER_URL = os.environ['BROKER_URL']
 logger.info("BROKER_URL: {}".format(BROKER_URL))
 
 MONGO_DSN = os.environ['MONGO_DSN']
 logger.info("MONGO_DSN: {}".format(MONGO_DSN))
 
-MONGO_DB = os.environ['MONGO_DB']
-logger.info("MONGO_DB: {}".format(MONGO_DB))
+DB_NAME = os.environ['MONGO_DB']
+logger.info("DB_NAME: {}".format(DB_NAME))
+
+COLLECTION_NAME = os.environ['MONGO_COLLECTION']
+logger.info("COLLECTION_NAME: {}".format(COLLECTION_NAME))
 
 MONGO_COLLECTION = os.environ['MONGO_COLLECTION']
 logger.info("MONGO_COLLECTION: {}".format(MONGO_COLLECTION))
@@ -39,6 +39,9 @@ logger.info("CACHE_REDIS_URL: {}".format(CACHE_REDIS_URL))
 
 GENDERIZE_API_KEY = os.environ['GENDERIZE_API_KEY']
 logger.info("GENDERIZE_API_KEY: {}".format(GENDERIZE_API_KEY))
+
+VERSION = os.environ['VERSION']
+logger.info("VERSION: {}".format(VERSION))
 
 MC_API_KEY = os.environ['MC_API_KEY']
 
