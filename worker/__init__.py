@@ -48,7 +48,7 @@ MC_API_KEY = os.environ['MC_API_KEY']
 
 def get_db_client():
     client = pymongo.MongoClient(MONGO_DSN)
-    db = client[MONGO_DB]
+    db = client[DB_NAME]
     collection = db[MONGO_COLLECTION]
     return collection
 
