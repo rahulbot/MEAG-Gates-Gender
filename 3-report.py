@@ -3,7 +3,7 @@ import csv
 
 from worker import get_db_client, get_genderize_client, places, themes_tag_ids
 
-VERSION = 1
+VERSION = 'no-corona-1'
 
 logging.info("Writing reports")
 
@@ -91,7 +91,7 @@ one_part_names = []
 for k, v in name_freq.items():
     one_part_names.append({'name': k, 'frequency': v})
 one_part_names = sorted(one_part_names, key=lambda i: i['frequency'], reverse=True)
-with open('data-v{}/one-part-names-complete-v{}.csv'.format(VERSION, VERSION), 'w') as f:
+with open('quotes {}/one-part-names-complete.csv'.format(VERSION), 'w') as f:
     headers = ['name', 'frequency']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
@@ -99,7 +99,7 @@ with open('data-v{}/one-part-names-complete-v{}.csv'.format(VERSION, VERSION), '
         writer.writerow(item)
 
 # write list of people gender results for review
-with open('data-v{}/quote-gender-complete-v{}.csv'.format(VERSION, VERSION), 'w') as f:
+with open('quotes {}/quote-gender-complete.csv'.format(VERSION), 'w') as f:
     headers = ['stories_id', 'name', 'first_name', 'gender_guess', 'gender_prob']
     writer = csv.DictWriter(f, headers)
     writer.writeheader()
@@ -107,17 +107,17 @@ with open('data-v{}/quote-gender-complete-v{}.csv'.format(VERSION, VERSION), 'w'
         writer.writerow(item)
 
 # joinable test
-story_writer = csv.DictWriter(open('data-v{}/stories-complete-v{}.csv'.format(VERSION, VERSION), 'w'),
+story_writer = csv.DictWriter(open('quotes {}/stories-complete.csv'.format(VERSION), 'w'),
                               fieldnames=['stories_id', 'publish_date', 'has_any?', 'male_count', 'has_male?',
                                           'female_count', 'has_female?', 'unknown_count', 'has_unknown?',
                                           'media_id', 'media_name', 'url', 'title', 'place'],
                               extrasaction='ignore')
 story_writer.writeheader()
-people_writer = csv.DictWriter(open('data-v{}/people-complete-v{}.csv'.format(VERSION, VERSION), 'w'),
+people_writer = csv.DictWriter(open('quotes {}/people-complete.csv'.format(VERSION), 'w'),
                                fieldnames=['stories_id', 'name', 'gender', 'probability'],
                                extrasaction='ignore')
 people_writer.writeheader()
-themes_writer = csv.DictWriter(open('data-v{}/themes-complete-v{}.csv'.format(VERSION, VERSION), 'w'),
+themes_writer = csv.DictWriter(open('quotes {}/themes-complete.csv'.format(VERSION), 'w'),
                                fieldnames=['stories_id', 'tag', 'tags_id'],
                                extrasaction='ignore')
 themes_writer.writeheader()

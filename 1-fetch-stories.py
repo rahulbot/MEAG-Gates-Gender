@@ -26,7 +26,7 @@ def story_fetch_worker(job):
     logger.info("  got a chunk of data back {}".format(len(stories)))
     for s in stories:
         matching = [e for e in job['stories'] if int(e['stories_id']) == int(s['stories_id'])][0]
-        s['place'] = matching['Place']
+        s['place'] = matching['place']
         s['quote'] = matching
     logger.info("  done with place addition")
     if REALLY_INSERT:

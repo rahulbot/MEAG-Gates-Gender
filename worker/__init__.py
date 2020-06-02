@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logger.info("------------------------------------------------------------------------")
 logger.info("Starting up Quote Worker")
 
-DATA_FILE_NAME = "Final Data.csv"
+DATA_FILE_NAME = "Gates Covid Chapter Quotes - for Processing - NOCOVID.csv"
 
 BROKER_URL = os.environ['BROKER_URL']
 logger.info("BROKER_URL: {}".format(BROKER_URL))
@@ -114,9 +114,9 @@ unique_story_ids = []
 with open(INPUT_FILE, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
-        if (row['checked (y/n)'].lower() == 'y') and (row['stories_id'] not in unique_story_ids):
-            if row['Place'].lower() in place_replacements.keys():
-                row['Place'] = place_replacements[row['Place'].lower()]
+        if (row['Checked (y/n)'].lower() == 'y') and (row['stories_id'] not in unique_story_ids):
+            if row['place'].lower() in place_replacements.keys():
+                row['place'] = place_replacements[row['place'].lower()]
             data.append(row)
             unique_story_ids.append(row['stories_id'])
 logger.info("  loaded {} stories".format(len(data)))

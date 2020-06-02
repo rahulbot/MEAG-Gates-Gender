@@ -23,7 +23,7 @@ def parse_with_genderize(self, story):
     collection = get_db_client()
     needs_gender = False
     # figure out what we know already
-    speaker = story['quote']['Speaker']
+    speaker = story['quote']['speaker']
     if speaker.lower() in replacement_lookup:
         speaker = replacement_lookup[speaker.lower()]
     name_parts = speaker.split()
