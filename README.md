@@ -1,10 +1,10 @@
-Media Cloud Quote Gender Workflow 
+Media Cloud Quote Gender Workflow
 =================================
 
 A workflow to help count people mentioned in quotes and guess their gender (which of course is fraught with
 complications and ethical issues).
 
-This assumes you **already have a CSV** file with quote speaker attribution that has been manually reviewed. We 
+This assumes you **already have a CSV** file with quote speaker attribution that has been manually reviewed. We
 build this CSV through a different workflow of:
 
 1. pulling stories from [Media Cloud](https://mediacloud.org)
@@ -24,6 +24,10 @@ Copy the `.env.template` to `.env` and then edit it.
 Running the Pipeline:
 ---------------------
 
+### 0 - Generating a CSV
+
+Checkout the notebook in this repo for instrutions on how to generate the initial CSV of quotes you want to run gender detection on. Generate that CSV and then have some folks manually review it (in something like a shared Google Spreadsheet). Then come back to this repo and continue.
+
 ### 1 - Fetching Content
 
 Put your CSV in `data` and edit `worker.DATA_FILE_NAME` with its name.
@@ -38,8 +42,8 @@ Open up another window and run `python 3-add-entity-gender.py` to fill that queu
 
 ### 3 - Run a Report
 
-We write these all out to a set of CSVs suitable for analysis in Tableau. Open up a terminal and run 
-`python 3-report.py` to generate these CSVs. They will be in a folder named based on the the colleciton 
+We write these all out to a set of CSVs suitable for analysis in Tableau. Open up a terminal and run
+`python 3-report.py` to generate these CSVs. They will be in a folder named based on the the colleciton
 and version you specified in the environment variables.
 
 
